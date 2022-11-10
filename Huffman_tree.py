@@ -88,14 +88,15 @@ class Node:
                 of is_left and is_right
                 expected only one of them to be True (and the other to be False
                 or both of them to be None"""
-        encoding_dict = dict()  # each letter as key and corresponding binary representation as value
-        if huffman_code == None:
-            huffman_code = str()  # set to empty string
         # left = 0, right = 1
         # we go through the whole tree, similarly to how __str__ does,
         # and for each leaf node (nodes with a value) we keep track of its huffman coding
+        encoding_dict = dict()  # each letter as key and corresponding binary representation as value
         current_pos_code = str(0 if is_left is True else 1)  # is_left and is_right are redundant
-        huffman_code = str(huffman_code) + current_pos_code
+        if huffman_code == None:
+            huffman_code = str()  # set to empty string
+        else: 
+            huffman_code = str(huffman_code) + current_pos_code
         if self.value is not None:  # if we are on a leaf node
             encoding_dict[self.value] = huffman_code
         if self.left_child is not None:
@@ -110,6 +111,9 @@ class Node:
                 encoding_dict[key] = dict_updates[key]  # update encoding dict
         
         return encoding_dict  # to be updated in upper recursion levels, and final version returned to caller
+
+    def encode_string(self):
+        pass
 
     def __str__(self):
         output = str((
@@ -136,5 +140,7 @@ class Node:
 
 
 if __name__ == "__main__":
-    a = Node("hello world! this is a very long string, hopefully it doesn't take my code too long to generate the tree for this, let's add a few special characters as well for fun: !@#$%^&*()\n\t -\r")
-    print(a.encoding_dict)
+    a = Node("""hello world! this is a very long string, hopefully it doesn't take my code too long to generate the tree for this,
+    let's add a few special characters as well for fun: !@#$%^&*()\n\t -\r""")
+    b = Node("hello world!")
+    print(b.encoding_dict)
