@@ -7,11 +7,13 @@ class Node:
         self.left_child = left_node  # Node object for left Node, or None
         self.right_child = right_node  # Node object for right Node, or None
         self.string = string_to_encode  # only top Node has this
+        self.code_string = str()  # the encoded binary string representation of self.string
         self.encoding_dict = dict()
         if string_to_encode is not None:
             self.build_tree()  # only build tree from top level
             self.shift_depth()  # assigns the correct value to each Node's depth
             self.encoding_dict = self.create_encoding()
+            self.encode_string()
 
     def shift_depth(self, shift: int = 0):
         """
@@ -96,7 +98,7 @@ class Node:
         if huffman_code == None:
             huffman_code = str()  # set to empty string
         else: 
-            huffman_code = str(huffman_code) + current_pos_code
+            huffman_code += current_pos_code
         if self.value is not None:  # if we are on a leaf node
             encoding_dict[self.value] = huffman_code
         if self.left_child is not None:
@@ -113,11 +115,21 @@ class Node:
         return encoding_dict  # to be updated in upper recursion levels, and final version returned to caller
 
     def encode_string(self):
-        pass
+        """
+        uses self.encoding_dict and self.string
+        in the top node to encode the string
+        """
+        assert (self.string is not None), "encode_string is only a method of the top node of a tree"
+        huffman_code = str()
+        for char in self.string:
+            huffman_code += str(self.encoding_dict[char])
+        huffman_code += str(self.encoding_dict["EOF"])
+        self.code_string = str(huffman_code)
 
     def __str__(self):
         output = str((
             "\t"*self.depth + "string = {}\n" +
+            "\t"*self.depth + "encoding = {}\n" +
             "\t"*self.depth + "value = {}\n" +
             "\t"*self.depth + "char counts = {}\n" +
             "\t"*self.depth + "depth = {}\n" +
@@ -125,6 +137,7 @@ class Node:
             "\t"*self.depth + "left child = [{}]\n" +
             "\t"*self.depth + "right child = [{}]\n").format(
                     self.string,
+                    self.encoding_dict,
                     self.value,
                     self.char_counts,
                     self.depth,
