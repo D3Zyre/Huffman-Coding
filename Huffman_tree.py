@@ -86,7 +86,7 @@ class Node:
         """
         assert (is_left is True and is_right is False) or (
                 is_left is False and is_right is True) or (
-                is_left is None and is_right is None), """Incorrect usage 
+                is_left is None and is_right is None), """Incorrect usage
                 of is_left and is_right
                 expected only one of them to be True (and the other to be False
                 or both of them to be None"""
@@ -95,9 +95,9 @@ class Node:
         # and for each leaf node (nodes with a value) we keep track of its huffman coding
         encoding_dict = dict()  # each letter as key and corresponding binary representation as value
         current_pos_code = str(0 if is_left is True else 1)  # is_left and is_right are redundant
-        if huffman_code == None:
+        if huffman_code is None:
             huffman_code = str()  # set to empty string
-        else: 
+        else:
             huffman_code += current_pos_code
         if self.value is not None:  # if we are on a leaf node
             encoding_dict[self.value] = huffman_code
@@ -111,7 +111,7 @@ class Node:
             for key in [k for k in dict_updates.keys() if k not in encoding_dict.keys()]:
                 # only update values which were not already in the dict
                 encoding_dict[key] = dict_updates[key]  # update encoding dict
-        
+
         return encoding_dict  # to be updated in upper recursion levels, and final version returned to caller
 
     def encode_string(self):
