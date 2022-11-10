@@ -7,9 +7,11 @@ class Node:
         self.left_child = left_node  # Node object for left Node, or None
         self.right_child = right_node  # Node object for right Node, or None
         self.string = string_to_encode  # only top Node has this
+        self.encoding_dict = dict()
         if string_to_encode is not None:
             self.build_tree()  # only build tree from top level
             self.shift_depth()  # assigns the correct value to each Node's depth
+            self.encoding_dict = self.create_encoding()
 
     def shift_depth(self, shift: int = 0):
         """
@@ -74,6 +76,41 @@ class Node:
                 self.char_counts[character] = 1
         self.char_counts["EOF"] = 1
 
+    def create_encoding(self, is_left: bool = None, is_right: bool = None, huffman_code: str = None):
+        """
+        creates a dictionary for the encoding of
+        self.string with the huffman coding represented
+        by the tree in self Node object (children and their children)
+        """
+        assert (is_left is True and is_right is False) or (
+                is_left is False and is_right is True) or (
+                is_left is None and is_right is None), """Incorrect usage 
+                of is_left and is_right
+                expected only one of them to be True (and the other to be False
+                or both of them to be None"""
+        encoding_dict = dict()  # each letter as key and corresponding binary representation as value
+        if huffman_code == None:
+            huffman_code = str()  # set to empty string
+        # left = 0, right = 1
+        # we go through the whole tree, similarly to how __str__ does,
+        # and for each leaf node (nodes with a value) we keep track of its huffman coding
+        current_pos_code = str(0 if is_left is True else 1)  # is_left and is_right are redundant
+        huffman_code = str(huffman_code) + current_pos_code
+        if self.value is not None:  # if we are on a leaf node
+            encoding_dict[self.value] = huffman_code
+        if self.left_child is not None:
+            dict_updates: dict = self.left_child.create_encoding(is_left=True, is_right=False, huffman_code=huffman_code)
+            for key in [k for k in dict_updates.keys() if k not in encoding_dict.keys()]:
+                # only update values which were not already in the dict
+                encoding_dict[key] = dict_updates[key]  # update encoding dict
+        if self.right_child is not None:
+            dict_updates: dict = self.right_child.create_encoding(is_left=False, is_right=True, huffman_code=huffman_code)
+            for key in [k for k in dict_updates.keys() if k not in encoding_dict.keys()]:
+                # only update values which were not already in the dict
+                encoding_dict[key] = dict_updates[key]  # update encoding dict
+        
+        return encoding_dict  # to be updated in upper recursion levels, and final version returned to caller
+
     def __str__(self):
         output = str((
             "\t"*self.depth + "string = {}\n" +
@@ -100,4 +137,4 @@ class Node:
 
 if __name__ == "__main__":
     a = Node("hello world! this is a very long string, hopefully it doesn't take my code too long to generate the tree for this, let's add a few special characters as well for fun: !@#$%^&*()\n\t -\r")
-    print(a)
+    print(a.encoding_dict)
