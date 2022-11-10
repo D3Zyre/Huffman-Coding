@@ -145,6 +145,20 @@ class Node:
                 digit_run = str()  # since we have found the code, we reset the run
         self.string = str(string)
 
+    def write_to_file(self, file):
+        """
+        writes the huffman encoding tree
+        and the encoded string in binary format
+        to file
+        """
+
+    def read_from_file(self, file):
+        """
+        reads the huffman encoding tree
+        and the encoded string in binary format
+        from file
+        """
+
     def __str__(self):
         output = str((
             "\t"*self.depth + "string = {}\n" +
