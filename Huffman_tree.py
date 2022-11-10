@@ -117,7 +117,7 @@ class Node:
     def encode_string(self):
         """
         uses self.encoding_dict and self.string
-        in the top node to encode the string
+        in the top node to encode the string to self.code_string
         """
         assert (self.string is not None), "encode_string is only a method of the top node of a tree"
         huffman_code = str()
@@ -125,6 +125,25 @@ class Node:
             huffman_code += str(self.encoding_dict[char])
         huffman_code += str(self.encoding_dict["EOF"])
         self.code_string = str(huffman_code)
+
+    def decode_string(self):
+        """
+        uses self.encoding_dict and self.code_string
+        in the top node to decode the string to self.string
+        """
+        assert (len(self.code_string) > 0), "decode_string only works when self.code_string is not empty string"
+        string = str()
+        digit_run = str()  # the run of digits since last run was identified
+        huff_codes = list(self.encoding_dict.values())  # so we don't have to call this a bunch of times
+        huff_keys = list(self.encoding_dict.keys())
+        for digit in self.code_string:
+            digit_run += digit  # keep adding digits until a valid huffman code is found
+            if digit_run in huff_codes:
+                addition = huff_keys[huff_codes.index(digit_run)]
+                if addition != "EOF":
+                    string += huff_keys[huff_codes.index(digit_run)]  # build the string from the huffman code we found
+                digit_run = str()  # since we have found the code, we reset the run
+        self.string = str(string)
 
     def __str__(self):
         output = str((
@@ -156,4 +175,7 @@ if __name__ == "__main__":
     a = Node("""hello world! this is a very long string, hopefully it doesn't take my code too long to generate the tree for this,
     let's add a few special characters as well for fun: !@#$%^&*()\n\t -\r""")
     b = Node("hello world!")
-    print(b.encoding_dict)
+    print(a.code_string)
+    print(a.string)  # before decoding, original string
+    a.decode_string()
+    print(a.string)  # after decoding, decoded string
