@@ -137,6 +137,7 @@ class Node:
         digit_run = str()  # the run of digits since last run was identified
         huff_codes = list(self.encoding_dict.values())  # so we don't have to call this a bunch of times
         huff_keys = list(self.encoding_dict.keys())
+        addition = str()
         for digit in self.code_string:
             digit_run += digit  # keep adding digits until a valid huffman code is found
             if digit_run in huff_codes:
@@ -144,6 +145,8 @@ class Node:
                 if addition != "EOF":
                     string += huff_keys[huff_codes.index(digit_run)]  # build the string from the huffman code we found
                 digit_run = str()  # since we have found the code, we reset the run
+            if addition == "EOF":
+                break
         self.string = str(string)
 
     def write_to_file(self, file):
@@ -176,7 +179,7 @@ class Node:
         total_length = int()
         for key in self.encoding_dict.keys():
             binary_string += str(key) + str(self.encoding_dict[key])
-        binary_string += "\0"  # add NULL character to signify the end of the tree (it isn't allowed in the string)
+        binary_string += "\0\n"  # add NULL and newline to signify the end of the tree (NULL isn't allowed in the string)
         total_length += len(binary_string)
         # this part of the string, we will want to write in text mode,
         # the rest will be in binary mode
@@ -200,15 +203,20 @@ class Node:
         and the encoded string in binary format
         from file
         """
-        with open(file, "r") as f:
-            string = f.read()
-        tree_string, encoded_string = string.split("\0")
+        with open(file, "r") as f:  # the beginning of the file was written in text mode
+            string = str()
+            while string.count("\0") == 0:  # NULL marks the end of the huffman tree and the start of the encoded bytes
+                string += f.readline()
+        string = string.rstrip("\0\n")
+        with open(file, "rb") as f:  # and the rest was written in bytes mode
+            encoded_string = bytearray(f.read()).split(bytes("\0", "UTF-8"))[-1]
+        encoded_string = encoded_string.lstrip(bytes("\r\n", "UTF-8"))
         tree_dict = dict()
         # rebuilding tree_dict from file data
         current_string = str()
         current_number = str()
         last_char_number = False
-        for char in tree_string:
+        for char in string:
             if not char.isnumeric():
                 if last_char_number:
                     tree_dict[current_string] = current_number
@@ -221,12 +229,11 @@ class Node:
                 current_number += char
         tree_dict[current_string] = current_number  # add the last entry
         # now tree_dict will match exactly the self.encoding_dict that was used to encode
-
-        encoded_string = bytearray([int(i) for i in encoded_string])  # FIXME figure out how to get bytes from file after NULL?
-        print([bin(i)[2:] for i in encoded_string])
         binary_string = bin(int.from_bytes(encoded_string, "big"))[2:]
-        print(binary_string)
-        print(tree_dict)
+        # update attributes in Node and decode string
+        self.code_string = binary_string
+        self.encoding_dict = tree_dict
+        self.decode_string()
 
     def __str__(self):
         output = str((
@@ -258,8 +265,7 @@ if __name__ == "__main__":
     a = Node("""hello world! this is a very long string, hopefully it doesn't take my code too long to generate the tree for this,
     let's add a few special characters as well for fun: !@#$%^&*()\n\t -\r""")
     b = Node("hello world!")
-    print(b.code_string)
     print(b.string)  # before decoding, original string
-    print(b.write_to_file("test.txt"))
-    print(b.encoding_dict)
+    print("compression ratio:", b.write_to_file("test.txt"))
     b.read_from_file("test.txt")
+    print(b.string)  # after encoding, writing, reading, and decoding
