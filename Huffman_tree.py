@@ -120,6 +120,7 @@ class Node:
         in the top node to encode the string to self.code_string
         """
         assert (self.string is not None), "encode_string is only a method of the top node of a tree"
+        assert (self.string.count("\0") == 0), "NULL character not allowed in string"
         huffman_code = str()
         for char in self.string:
             huffman_code += str(self.encoding_dict[char])
@@ -150,7 +151,50 @@ class Node:
         writes the huffman encoding tree
         and the encoded string in binary format
         to file
+        returns efficiency (float, <1 is good)
         """
+        binary_string = str()  # this will be written to the file, in binary
+        # first we need to convert the huffman tree into a binary string
+        # options:
+        # 1. we write the tree as a list of lists of lists etc. which
+        # could be converted by the decoder back to a dict of characters to encodings
+        # 2. we just write the dict of characters to encodings
+        # let's figure out which one is shorter
+        # example for 1:
+        # [a, [b, [[c, d], [e, [f, g]]]]]
+        # or in a more compact form:
+        # [a[b[[cd][e[fg]]]]]
+        # the same thing but with method 2:
+        # a=0, b=10, c=1100, d=1101, e=1110, f=11110, g=11111
+        # more compact:
+        # a0b10c1100d1101e1110f11110g11111
+        # even more compact
+        # a0b2c12d13e14f30g31 <<< NOTE this is the chosen formatting
+        # <character><number><character><number><...> the decoder will be able to recognize this
+        # well, it appears that for this specific example at least, both formats are equivalent in size
+        # for simplicity, let's use option 2, as it is simple to encode and decode
+        total_length = int()
+        for key in self.encoding_dict.keys():
+            binary_string += str(key) + str(int(self.encoding_dict[key], base=2))
+        binary_string += "\0"  # add NULL character to signify the end of the tree (it isn't allowed in the string)
+        total_length += len(binary_string)
+        # this part of the string, we will want to write in text mode,
+        # the rest will be in binary mode
+        with open(file, "w") as f:  # creates/overwrites the file
+            f.write(binary_string)
+        with open(file, "ab") as f:  # appends to the same file, now in binary mode
+            binary_string = bytes()
+            b_array = list()
+            code_string = self.code_string.ljust(int(len(self.code_string)//8)*8+8, "0")
+            for i in range(0, len(code_string), 8):
+                b_array.append(int(code_string[i:i+8], base=2))
+                #binary_string += bytes(chr(int(self.code_string[i:i+8], 2)), encoding="UTF-8")  # converts the code string into binary format
+            binary_string = bytearray(b_array)
+            f.write(binary_string)
+        total_length += len(binary_string)
+        #print(total_length, len(self.string))
+        efficiency = total_length/len(self.string)
+        return efficiency
 
     def read_from_file(self, file):
         """
@@ -158,6 +202,10 @@ class Node:
         and the encoded string in binary format
         from file
         """
+        # TESTING converting back to 0s and 1s
+        #string = int.from_bytes(binary_string, "big")
+        #string = bin(string)[2:]
+
 
     def __str__(self):
         output = str((
@@ -189,7 +237,6 @@ if __name__ == "__main__":
     a = Node("""hello world! this is a very long string, hopefully it doesn't take my code too long to generate the tree for this,
     let's add a few special characters as well for fun: !@#$%^&*()\n\t -\r""")
     b = Node("hello world!")
-    print(a.code_string)
-    print(a.string)  # before decoding, original string
-    a.decode_string()
-    print(a.string)  # after decoding, decoded string
+    print(b.code_string)
+    print(b.string)  # before decoding, original string
+    b.write_to_file("test.txt")
