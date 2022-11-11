@@ -175,7 +175,7 @@ class Node:
         # for simplicity, let's use option 2, as it is simple to encode and decode
         total_length = int()
         for key in self.encoding_dict.keys():
-            binary_string += str(key) + str(int(self.encoding_dict[key], base=2))
+            binary_string += str(key) + str(self.encoding_dict[key])
         binary_string += "\0"  # add NULL character to signify the end of the tree (it isn't allowed in the string)
         total_length += len(binary_string)
         # this part of the string, we will want to write in text mode,
@@ -200,10 +200,33 @@ class Node:
         and the encoded string in binary format
         from file
         """
-        # TESTING converting back to 0s and 1s
-        #string = int.from_bytes(binary_string, "big")
-        #string = bin(string)[2:]
+        with open(file, "r") as f:
+            string = f.read()
+        tree_string, encoded_string = string.split("\0")
+        tree_dict = dict()
+        # rebuilding tree_dict from file data
+        current_string = str()
+        current_number = str()
+        last_char_number = False
+        for char in tree_string:
+            if not char.isnumeric():
+                if last_char_number:
+                    tree_dict[current_string] = current_number
+                    current_string = str()
+                    current_number = str()
+                current_string += char
+                last_char_number = False
+            else:
+                last_char_number = True
+                current_number += char
+        tree_dict[current_string] = current_number  # add the last entry
+        # now tree_dict will match exactly the self.encoding_dict that was used to encode
 
+        encoded_string = bytearray([int(i) for i in encoded_string])  # FIXME figure out how to get bytes from file after NULL?
+        print([bin(i)[2:] for i in encoded_string])
+        binary_string = bin(int.from_bytes(encoded_string, "big"))[2:]
+        print(binary_string)
+        print(tree_dict)
 
     def __str__(self):
         output = str((
@@ -238,3 +261,5 @@ if __name__ == "__main__":
     print(b.code_string)
     print(b.string)  # before decoding, original string
     print(b.write_to_file("test.txt"))
+    print(b.encoding_dict)
+    b.read_from_file("test.txt")
