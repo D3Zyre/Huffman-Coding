@@ -1,3 +1,9 @@
+def justify_to_8(num):
+    just = int(num//8)*8+8
+    if num % 8 == 0:
+        just -= 8
+    return just
+
 class Node:
     def __init__(self, string_to_encode: str = None, value: str = None, count: int = None, left_node=None, right_node=None):
         self.value = value  # value that the node encodes, a single character
@@ -187,7 +193,7 @@ class Node:
             f.write(binary_string)
         with open(file, "ab") as f:  # appends to the same file, now in binary mode
             b_array = list()
-            code_string = self.code_string.ljust(int(len(self.code_string)//8)*8+8, "0")  # pad with 0s at the end to encode as bytes
+            code_string = self.code_string.ljust(justify_to_8(len(self.code_string)), "0")  # pad with 0s at the end to encode as bytes
             for i in range(0, len(code_string), 8):
                 b_array.append(int(code_string[i:i+8], base=2))
             binary_string = bytearray(b_array)
@@ -203,7 +209,7 @@ class Node:
         and the encoded string in binary format
         from file
         """
-        with open(file, "r") as f:  # the beginning of the file was written in text mode
+        with open(file, "r", errors="ignore") as f:  # the beginning of the file was written in text mode
             string = str()
             while string.count("\0") == 0:  # NULL marks the end of the huffman tree and the start of the encoded bytes
                 string += f.readline()
@@ -230,7 +236,7 @@ class Node:
         tree_dict[current_string] = current_number  # add the last entry
         # now tree_dict will match exactly the self.encoding_dict that was used to encode
         binary_string = bin(int.from_bytes(encoded_string, "big"))[2:]
-        binary_string = binary_string.rjust(int(len(binary_string)//8)*8+8, "0")
+        binary_string = binary_string.rjust(justify_to_8(len(binary_string)), "0")
         # update attributes in Node and decode string
         self.code_string = binary_string
         self.encoding_dict = tree_dict
@@ -263,13 +269,13 @@ class Node:
 
 
 if __name__ == "__main__":
-    a = Node("""hello world! this is a very long string, hopefully it doesn't take my code too long to generate the tree for this,
-    let's add a few special characters as well for fun: !@#$%^&*()\n\t -\r""")
+    a = Node("""hello world! this is a very long string, let's add a few special characters as well for fun: !@#$%^&*()""")
     b = Node("hello world!")
-    c = Node("test\r\ntesting\ntesteroo\r\ntesterino")
-    print(c.string)  # before decoding, original string
-    print(c.encoding_dict)
-    print(c.code_string)
-    print("compression ratio (lower is better):", c.write_to_file("test.txt"))
-    c.read_from_file("test.txt")
-    print(c.string)  # after encoding, writing, reading, and decoding
+    c = Node("test\ntesting\ntesteroo\n\ttesterino")
+    z = c
+    print(z.string)  # before decoding, original string
+    #print(z.encoding_dict)
+    #print(z.code_string)
+    print("compression ratio (lower is better):", z.write_to_file("test.txt"))
+    z.read_from_file("test.txt")
+    print(z.string)  # after encoding, writing, reading, and decoding
