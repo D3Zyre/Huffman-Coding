@@ -230,6 +230,7 @@ class Node:
         tree_dict[current_string] = current_number  # add the last entry
         # now tree_dict will match exactly the self.encoding_dict that was used to encode
         binary_string = bin(int.from_bytes(encoded_string, "big"))[2:]
+        binary_string = binary_string.rjust(int(len(binary_string)//8)*8+8, "0")
         # update attributes in Node and decode string
         self.code_string = binary_string
         self.encoding_dict = tree_dict
@@ -265,7 +266,10 @@ if __name__ == "__main__":
     a = Node("""hello world! this is a very long string, hopefully it doesn't take my code too long to generate the tree for this,
     let's add a few special characters as well for fun: !@#$%^&*()\n\t -\r""")
     b = Node("hello world!")
-    print(b.string)  # before decoding, original string
-    print("compression ratio:", b.write_to_file("test.txt"))
-    b.read_from_file("test.txt")
-    print(b.string)  # after encoding, writing, reading, and decoding
+    c = Node("test\r\ntesting\ntesteroo\r\ntesterino")
+    print(c.string)  # before decoding, original string
+    print(c.encoding_dict)
+    print(c.code_string)
+    print("compression ratio (lower is better):", c.write_to_file("test.txt"))
+    c.read_from_file("test.txt")
+    print(c.string)  # after encoding, writing, reading, and decoding
