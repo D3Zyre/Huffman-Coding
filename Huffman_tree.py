@@ -183,17 +183,15 @@ class Node:
         with open(file, "w") as f:  # creates/overwrites the file
             f.write(binary_string)
         with open(file, "ab") as f:  # appends to the same file, now in binary mode
-            binary_string = bytes()
             b_array = list()
-            code_string = self.code_string.ljust(int(len(self.code_string)//8)*8+8, "0")
+            code_string = self.code_string.ljust(int(len(self.code_string)//8)*8+8, "0")  # pad with 0s at the end to encode as bytes
             for i in range(0, len(code_string), 8):
                 b_array.append(int(code_string[i:i+8], base=2))
-                #binary_string += bytes(chr(int(self.code_string[i:i+8], 2)), encoding="UTF-8")  # converts the code string into binary format
             binary_string = bytearray(b_array)
             f.write(binary_string)
         total_length += len(binary_string)
-        #print(total_length, len(self.string))
         efficiency = total_length/len(self.string)
+
         return efficiency
 
     def read_from_file(self, file):
@@ -239,4 +237,4 @@ if __name__ == "__main__":
     b = Node("hello world!")
     print(b.code_string)
     print(b.string)  # before decoding, original string
-    b.write_to_file("test.txt")
+    print(b.write_to_file("test.txt"))
