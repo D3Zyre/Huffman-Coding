@@ -334,7 +334,8 @@ if __name__ == "__main__":
     let's add a few special characters as well for fun: !@#$%^&*()""")
     b = Node("hello world!")
     c = Node("test\ntesting\ntesteroo\ntesterino")
-    z = a
+    d = Node("aoehuoneudsa           oateuhoes u aoeu aoeu oaeu oauhaosu \n oauo uo aouoaust \t aoetuhoa\r\n\t\t aoeudnaoeuda     tanout           oaunthoua oeasuthoau oeuoaheunto untshinti oteduooehinso ioenudsno touhoaudoe uoteduonus oe\r oeuoeeusaoh ua\n ouoatuhoan uea\r \r \r oteuhaous aou \r oaeu oau \n oaeuahou a\t")
+    z = d
     print(z.get_string())  # before decoding, original string
     #print(z.encoding_dict)
     #print(z.code_string)
