@@ -273,7 +273,10 @@ class Node:
             bits = bits[:-1]
             string = bytes(bits).decode("UTF-8")
         with open(file, "rb") as f:  # FIXME also use bitio for this part?
-            encoded_string = bytearray(f.read()).split(bytes("\0", "UTF-8"))[-1]
+            encoded_string_list = bytearray(f.read()).split(bytes("\0", "UTF-8"))[1:]
+        encoded_string = bytearray()
+        for i in encoded_string_list:
+            encoded_string.extend(i)
         encoded_string = encoded_string.lstrip(bytes("\r\n", "UTF-8"))
         tree_dict = dict()
         # rebuilding tree_dict from file data
