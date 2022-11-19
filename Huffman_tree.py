@@ -1,3 +1,6 @@
+import bitio  # for reading/writing to files in binary mode
+
+
 def justify_to_8(num):
     """
     return the lowest multiple of 8 that is greater than or equal to num
@@ -39,6 +42,18 @@ class Node:
         returns self.__string
         """
         return self.__string
+
+    def get_count(self):
+        """
+        returns self.__count
+        """
+        return self.__count
+
+    def get_depth(self):
+        """
+        returns self.__depth
+        """
+        return self.__depth
     
     def get_huffman_code(self):
         """
@@ -52,6 +67,12 @@ class Node:
         self.__encoding_dict
         """
         return self.__encoding_dict
+
+    def get_children(self):
+        """
+        returns [self.__left_child, self.__right_child]
+        """
+        return [self.__left_child, self.__right_child]
 
     def __shift_depth(self, shift: int = 0):
         """
@@ -82,25 +103,25 @@ class Node:
         while len(nodes) > 1:  # repeat until there is only one tree
             # combine two smallest branches:
             # first we find the two smallest branches.
-            smallest_count = int(min([leaf.count for leaf in nodes]))
-            smallest_indices = list([int(i) for i, leaf in enumerate(nodes) if leaf.count == smallest_count])
+            smallest_count = int(min([leaf.get_count() for leaf in nodes]))
+            smallest_indices = list([int(i) for i, leaf in enumerate(nodes) if leaf.get_count() == smallest_count])
             if len(smallest_indices) < 2:
-                second_smallest_count = int(min([leaf.count for leaf in nodes if leaf.count != smallest_count]))
-                smallest_indices.extend(list([int(i) for i, leaf in enumerate(nodes) if leaf.count == second_smallest_count]))
+                second_smallest_count = int(min([leaf.get_count() for leaf in nodes if leaf.get_count() != smallest_count]))
+                smallest_indices.extend(list([int(i) for i, leaf in enumerate(nodes) if leaf.get_count() == second_smallest_count]))
             # now we should have at least 2 minimum nodes
             picks = list([nodes[smallest_indices[0]], nodes[smallest_indices[1]]])  # TODO sort in a better way than the given order?
             nodes.pop(max([smallest_indices[0], smallest_indices[1]]))  # need to pop largest index first as to not shift smaller indices
             nodes.pop(min([smallest_indices[1], smallest_indices[0]]))
-            nodes.append(Node(None, None, int(sum([leaf.count for leaf in picks])), picks[0], picks[1]))
+            nodes.append(Node(None, None, int(sum([leaf.get_count() for leaf in picks])), picks[0], picks[1]))
             # new branch has been added, and leaves were moved to it
         # updating top node's attributes, essentially copying nodes[0] into self
-        self.__count = nodes[0].count
-        nodes[0].string = self.__string
-        nodes[0].__count_chars()
-        self.__char_counts = nodes[0].char_counts
-        self.__depth = nodes[0].depth
-        self.__left_child = nodes[0].left_child
-        self.__right_child = nodes[0].right_child
+        self.__count = nodes[0].get_count()
+        #nodes[0].set_string(self.__string)
+        #nodes[0].__count_chars()                      # FIXME double check this is right, then delete
+        #self.__char_counts = nodes[0].char_counts
+        self.__depth = nodes[0].get_depth()
+        self.__left_child = nodes[0].get_children()[0]
+        self.__right_child = nodes[0].get_children()[1]
 
     def __count_chars(self):
         """
@@ -165,12 +186,12 @@ class Node:
         huffman_code += str(self.__encoding_dict["EOF"])
         self.__code_string = str(huffman_code)
 
-    def decode_string(self):
+    def __decode_string(self):
         """
         uses self.__encoding_dict and self.__code_string
         in the top node to decode the string to self.__string
         """
-        assert (len(self.__code_string) > 0), "decode_string only works when self.__code_string is not empty string"
+        assert (len(self.__code_string) > 0), "__decode_string only works when self.__code_string is not empty string"
         string = str()
         digit_run = str()  # the run of digits since last run was identified
         huff_codes = list(self.__encoding_dict.values())  # so we don't have to call this a bunch of times
@@ -241,12 +262,17 @@ class Node:
         and the encoded string in binary format
         from file
         """
-        with open(file, "r", errors="ignore") as f:  # the beginning of the file was written in text mode
+        with bitio.BitFileReader(file) as bit_reader:
             string = str()
-            while string.count("\0") == 0:  # NULL marks the end of the huffman tree and the start of the encoded bytes
-                string += f.readline()
-        string = string.rstrip("\0\n")
-        with open(file, "rb") as f:  # and the rest was written in bytes mode
+            Null_encountered = False
+            bits = list()  # list of bytes as ints
+            while not Null_encountered:
+                bits.append(bit_reader.read_bits(8))
+                if bits[-1] == 0:  # 0 is NULL
+                    Null_encountered = True
+            bits = bits[:-1]
+            string = bytes(bits).decode("UTF-8")
+        with open(file, "rb") as f:  # FIXME also use bitio for this part?
             encoded_string = bytearray(f.read()).split(bytes("\0", "UTF-8"))[-1]
         encoded_string = encoded_string.lstrip(bytes("\r\n", "UTF-8"))
         tree_dict = dict()
@@ -272,7 +298,7 @@ class Node:
         # update attributes in Node and decode string
         self.__code_string = binary_string
         self.__encoding_dict = tree_dict
-        self.decode_string()
+        self.__decode_string()
 
     def __str__(self):
         output = str((
@@ -306,9 +332,10 @@ if __name__ == "__main__":
     b = Node("hello world!")
     c = Node("test\ntesting\ntesteroo\ntesterino")
     z = a
-    print(z.string)  # before decoding, original string
+    print(z.get_string())  # before decoding, original string
     #print(z.encoding_dict)
     #print(z.code_string)
     print("compression ratio (lower is better):", z.write_to_file("test.txt"))
     z.read_from_file("test.txt")
-    print(z.string)  # after encoding, writing, reading, and decoding
+    print(z.get_string())  # after encoding, writing, reading, and decoding
+
