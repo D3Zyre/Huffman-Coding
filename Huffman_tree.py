@@ -339,7 +339,7 @@ if __name__ == "__main__":
     print(z.get_string())  # before decoding, original string
     #print(z.encoding_dict)
     #print(z.code_string)
-    print("compression ratio (lower is better):", z.write_to_file("test.txt"))
-    z.read_from_file("test.txt")
+    print("compression ratio (lower is better):", z.write_to_file("test.huf"))
+    z.read_from_file("test.huf")
     print(z.get_string())  # after encoding, writing, reading, and decoding
 
