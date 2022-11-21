@@ -345,26 +345,26 @@ if __name__ == "__main__":
     b = Node("hello world!")
     c = Node("test\ntesting\ntesteroo\ntesterino")
     d = Node("aoehuoneudsa           oateuhoes u aoeu aoeu oaeu oauhaosu \n oauo uo aouoaust \t aoetuhoa\r\n\t\t aoeudnaoeuda     tanout           oaunthoua oeasuthoau oeuoaheunto untshinti oteduooehinso ioenudsno touhoaudoe uoteduonus oe\r oeuoeeusaoh ua\n ouoatuhoan uea\r \r \r oteuhaous aou \r oaeu oau \n oaeuahou a\t")
-    with open(input("File:\n"), "r") as file:
+    with open("Huffman_tree.py", "r") as file:
         e = Node(file.read())
     f = Node("a string with numbers in it 123 hell0 what th3 h3ck")
+    g = Node("random characters go! OASEHAoieaoneehaonEHOENHAOTN9232903754&#(@*#)(9623894612~`+|+_Z||\\aeu\\aeuaou\aoueaouoeu\.uaoez/aoeu-ko{aeoua{auoeua\}auaohuasua\}asuheaouh743597&*^$^$90234615234067549")
     letter = -1
-    #for z in [a, b, c, d, e]:
-    for z in [e]:
+    for z in [a, b, c, d, e, f, g]:
         letter += 1
         print(letter)
         original = z.get_string()
         #print(original)
-        print(z.get_encoding_dict())
+        #print(z.get_encoding_dict())
         with open("input_{}.txt".format(letter), "w") as original_file:
             original_file.write(original)
         #print(z.encoding_dict)
         #print(z.code_string)
-        print("compression ratio (lower is better):", z.write_to_file("test_{}.huf".format(letter)))
+        print("compression ratio (lower is better, less than 1 is good):", z.write_to_file("test_{}.huf".format(letter)))
         z.read_from_file("test_{}.huf".format(letter))
         decoded = z.get_string()
         #print(decoded)  # after encoding, writing, reading, and decoding
-        print(z.get_encoding_dict())
+        #print(z.get_encoding_dict())
         with open("output_{}.txt".format(letter), "w") as out_file:
             out_file.write(decoded)
         print("match?: {}".format(original == decoded))
