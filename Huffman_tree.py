@@ -277,6 +277,7 @@ class Node:
         encoded_string = bytearray()
         for i in encoded_string_list:
             encoded_string.extend(i)
+            encoded_string.extend(bytearray("\0", "UTF-8"))
         encoded_string = encoded_string.lstrip(bytes("\r\n", "UTF-8"))
         tree_dict = dict()
         # rebuilding tree_dict from file data
@@ -295,6 +296,8 @@ class Node:
                 last_char_number = True
                 current_number += char
         tree_dict[current_string] = current_number  # add the last entry
+        if "\r\n" in tree_dict.keys():
+            tree_dict["\n"] = tree_dict.pop("\r\n")
         # now tree_dict will match exactly the self.__encoding_dict that was used to encode
         binary_string = bin(int.from_bytes(encoded_string, "big"))[2:]
         binary_string = binary_string.rjust(justify_to_8(len(binary_string)), "0")
@@ -335,11 +338,26 @@ if __name__ == "__main__":
     b = Node("hello world!")
     c = Node("test\ntesting\ntesteroo\ntesterino")
     d = Node("aoehuoneudsa           oateuhoes u aoeu aoeu oaeu oauhaosu \n oauo uo aouoaust \t aoetuhoa\r\n\t\t aoeudnaoeuda     tanout           oaunthoua oeasuthoau oeuoaheunto untshinti oteduooehinso ioenudsno touhoaudoe uoteduonus oe\r oeuoeeusaoh ua\n ouoatuhoan uea\r \r \r oteuhaous aou \r oaeu oau \n oaeuahou a\t")
-    z = d
-    print(z.get_string())  # before decoding, original string
-    #print(z.encoding_dict)
-    #print(z.code_string)
-    print("compression ratio (lower is better):", z.write_to_file("test.huf"))
-    z.read_from_file("test.huf")
-    print(z.get_string())  # after encoding, writing, reading, and decoding
-
+    with open(input("File:\n"), "r") as file:
+        e = Node(file.read())
+    letter = -1
+    #for z in [a, b, c, d, e]:
+    for z in [e]:
+        letter += 1
+        print(letter)
+        original = z.get_string()
+        #print(original)
+        print(z.get_encoding_dict())
+        with open("input_{}.txt".format(letter), "w") as original_file:
+            original_file.write(original)
+        #print(z.encoding_dict)
+        #print(z.code_string)
+        print("compression ratio (lower is better):", z.write_to_file("test_{}.huf".format(letter)))
+        z.read_from_file("test_{}.huf".format(letter))
+        decoded = z.get_string()
+        #print(decoded)  # after encoding, writing, reading, and decoding
+        print(z.get_encoding_dict())
+        with open("output_{}.txt".format(letter), "w") as out_file:
+            out_file.write(decoded)
+        print("match?: {}".format(original == decoded))
+        print("\n\n")
