@@ -237,7 +237,10 @@ class Node:
         # for simplicity, let's use option 2, as it is simple to encode and decode
         total_length = int()
         for key in self.__encoding_dict.keys():
-            binary_string += str(key) + str(self.__encoding_dict[key])
+            if not str(key).isnumeric():
+                binary_string += str(key) + str(self.__encoding_dict[key])
+            else:
+                binary_string += "2"+str(key) + str(self.__encoding_dict[key]) # NOTE this is to fix the decoder not seeing numbers oops
         binary_string += "\0\n"  # add NULL and newline to signify the end of the tree (NULL isn't allowed in the string)
         total_length += len(binary_string)
         # this part of the string, we will want to write in text mode,
@@ -284,14 +287,18 @@ class Node:
         current_string = str()
         current_number = str()
         last_char_number = False
+        number_key_flag = False
         for char in string:
-            if not char.isnumeric():
+            if not char.isnumeric() or number_key_flag:
+                number_key_flag = False
                 if last_char_number:
                     tree_dict[current_string] = current_number
                     current_string = str()
                     current_number = str()
                 current_string += char
                 last_char_number = False
+            elif char == "2":
+                number_key_flag = True # next char is a key
             else:
                 last_char_number = True
                 current_number += char
@@ -340,6 +347,7 @@ if __name__ == "__main__":
     d = Node("aoehuoneudsa           oateuhoes u aoeu aoeu oaeu oauhaosu \n oauo uo aouoaust \t aoetuhoa\r\n\t\t aoeudnaoeuda     tanout           oaunthoua oeasuthoau oeuoaheunto untshinti oteduooehinso ioenudsno touhoaudoe uoteduonus oe\r oeuoeeusaoh ua\n ouoatuhoan uea\r \r \r oteuhaous aou \r oaeu oau \n oaeuahou a\t")
     with open(input("File:\n"), "r") as file:
         e = Node(file.read())
+    f = Node("a string with numbers in it 123 hell0 what th3 h3ck")
     letter = -1
     #for z in [a, b, c, d, e]:
     for z in [e]:
